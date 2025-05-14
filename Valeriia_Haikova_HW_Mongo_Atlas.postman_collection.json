@@ -1,0 +1,507 @@
+{
+	"info": {
+		"_postman_id": "d39c7272-124d-4867-8374-0f16385e14bf",
+		"name": "Valeriia_Haikova_HW_Mongo_Atlas",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+		"_exporter_id": "17890354"
+	},
+	"item": [
+		{
+			"name": "[POST] Create document",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"const id = pm.response.json()._id;",
+							"pm.collectionVariables.set(\"id\", id);",
+							"",
+							"pm.test(\"Status code is 201\", function () {",
+							"    pm.response.to.have.status(201);",
+							"});",
+							"",
+							"",
+							"const jsonRequest = JSON.parse(pm.request.body.raw);",
+							"",
+							"pm.test(\"Attributes created properly\", function () {",
+							"    var jsonData = pm.response.json();",
+							"",
+							"    pm.expect(jsonData._id).to.not.eq(null);",
+							"    pm.expect(jsonData.name).to.eql(jsonRequest.name);",
+							"    pm.expect(jsonData.age).to.eql(jsonRequest.age);",
+							"    pm.expect(jsonData.email).to.eql(jsonRequest.email);",
+							"    pm.expect(jsonData.createdAt).to.not.eql(null);",
+							"});"
+						],
+						"type": "text/javascript",
+						"packages": {}
+					}
+				},
+				{
+					"listen": "prerequest",
+					"script": {
+						"exec": [
+							"pm.collectionVariables.set(\"randomFirstName\",pm.collectionVariables.replaceIn(\"{{$randomFirstName}}\"))",
+							"pm.collectionVariables.set(\"randomEmail\",pm.collectionVariables.replaceIn(\"{{$randomEmail}}\"))",
+							"pm.collectionVariables.set(\"randomAge\", _.random(18, 99));"
+						],
+						"type": "text/javascript",
+						"packages": {}
+					}
+				}
+			],
+			"request": {
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n    \"name\": \"{{randomFirstName}}\",\n    \"email\": \"{{randomEmail}}\",\n    \"age\": {{randomAge}}\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "{{baseUrl}}{{collection}}",
+					"host": [
+						"{{baseUrl}}{{collection}}"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "[GET] Find all documents",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"pm.test(\"Status is 200\", function () {",
+							"    pm.response.to.have.status(200);",
+							"});",
+							"",
+							"pm.test(\"Response contains documents\", function () {",
+							"    var jsonData = pm.response.json();",
+							"    pm.expect(jsonData).to.be.an(\"array\").that.is.not.empty;",
+							"});",
+							"",
+							"const documentsSize = pm.response.json().length;",
+							"pm.collectionVariables.set(\"documentsSize\", documentsSize);"
+						],
+						"type": "text/javascript",
+						"packages": {}
+					}
+				},
+				{
+					"listen": "prerequest",
+					"script": {
+						"exec": [
+							""
+						],
+						"type": "text/javascript",
+						"packages": {}
+					}
+				}
+			],
+			"request": {
+				"auth": {
+					"type": "noauth"
+				},
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "{{baseUrl}}{{collection}}",
+					"host": [
+						"{{baseUrl}}{{collection}}"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "[GET] Find document by ID",
+			"event": [
+				{
+					"listen": "prerequest",
+					"script": {
+						"exec": [
+							""
+						],
+						"type": "text/javascript",
+						"packages": {}
+					}
+				},
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"pm.test(\"Status code is 200\", function () {",
+							"    pm.response.to.have.status(200);",
+							"});",
+							"",
+							"pm.test(\"ID is matching\", function () {",
+							"    var jsonData = pm.response.json();",
+							"",
+							"    pm.expect(jsonData._id).to.eq(pm.collectionVariables.get(\"id\"));",
+							"    pm.expect(jsonData.name).to.eql(pm.collectionVariables.get(\"randomFirstName\"));",
+							"    pm.expect(jsonData.age).to.eql(pm.collectionVariables.get(\"randomAge\"));",
+							"    pm.expect(jsonData.email).to.eql(pm.collectionVariables.get(\"randomEmail\"));",
+							"});"
+						],
+						"type": "text/javascript",
+						"packages": {}
+					}
+				}
+			],
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "{{baseUrl}}{{collection}}/{{id}}",
+					"host": [
+						"{{baseUrl}}{{collection}}"
+					],
+					"path": [
+						"{{id}}"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "[GET] Find document by query",
+			"event": [
+				{
+					"listen": "prerequest",
+					"script": {
+						"exec": [
+							""
+						],
+						"type": "text/javascript",
+						"packages": {}
+					}
+				},
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"pm.test(\"Filtered documents\", function () {",
+							"    pm.response.to.have.status(200);",
+							"    var jsonData = pm.response.json();",
+							"    pm.expect(jsonData).to.be.an(\"array\");",
+							"",
+							"    pm.expect(jsonData[0]._id).to.eq(pm.collectionVariables.get(\"id\"));",
+							"    pm.expect(jsonData[0].name).to.eql(pm.collectionVariables.get(\"randomFirstName\"));",
+							"    pm.expect(jsonData[0].age).to.eql(pm.collectionVariables.get(\"randomAge\"));",
+							"    pm.expect(jsonData[0].email).to.eql(pm.collectionVariables.get(\"randomEmail\"));",
+							"});"
+						],
+						"type": "text/javascript",
+						"packages": {}
+					}
+				}
+			],
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "{{baseUrl}}{{collection}}/search/query?name={{randomFirstName}}",
+					"host": [
+						"{{baseUrl}}{{collection}}"
+					],
+					"path": [
+						"search",
+						"query"
+					],
+					"query": [
+						{
+							"key": "name",
+							"value": "{{randomFirstName}}"
+						}
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "[GET] Aggregate documents by attribute",
+			"event": [
+				{
+					"listen": "prerequest",
+					"script": {
+						"exec": [
+							""
+						],
+						"type": "text/javascript",
+						"packages": {}
+					}
+				},
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"pm.test(\"Aggregated documents\", function () {",
+							"    pm.response.to.have.status(200);",
+							"    var jsonData = pm.response.json();",
+							"",
+							"    pm.expect(jsonData._id).to.eq(null);",
+							"    pm.expect(jsonData.count).to.eql(pm.collectionVariables.get(\"documentsSize\"));",
+							"});"
+						],
+						"type": "text/javascript",
+						"packages": {}
+					}
+				}
+			],
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "{{baseUrl}}{{collection}}/aggregate?field={{defaultAttributeName}}",
+					"host": [
+						"{{baseUrl}}{{collection}}"
+					],
+					"path": [
+						"aggregate"
+					],
+					"query": [
+						{
+							"key": "field",
+							"value": "{{defaultAttributeName}}"
+						}
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "[PUT] Edit document",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"pm.test(\"Status code is 200\", function () {",
+							"    pm.response.to.have.status(200);",
+							"});",
+							"",
+							"const jsonRequest = JSON.parse(pm.request.body.raw);",
+							"",
+							"pm.test(\"Attributes edited properly\", function () {",
+							"    var jsonData = pm.response.json();",
+							"",
+							"    pm.expect(jsonData._id).to.eq(pm.collectionVariables.get(\"id\"));",
+							"    pm.expect(jsonData.name).to.eql(jsonRequest.name);",
+							"    pm.expect(jsonData.age).to.eql(jsonRequest.age);",
+							"    pm.expect(jsonData.email).to.eql(jsonRequest.email);",
+							"    pm.expect(jsonData.createdAt).to.not.eql(null);",
+							"    pm.expect(jsonData.updatedAt).to.not.eql(null);",
+							"});"
+						],
+						"type": "text/javascript",
+						"packages": {}
+					}
+				},
+				{
+					"listen": "prerequest",
+					"script": {
+						"exec": [
+							"pm.collectionVariables.set(\"editedRandomFirstName\",pm.collectionVariables.replaceIn(\"{{$randomFirstName}}\"))",
+							"pm.collectionVariables.set(\"editedRandomEmail\",pm.collectionVariables.replaceIn(\"{{$randomEmail}}\"))",
+							"pm.collectionVariables.set(\"editedRandomAge\", _.random(18, 99));"
+						],
+						"type": "text/javascript",
+						"packages": {}
+					}
+				}
+			],
+			"request": {
+				"method": "PUT",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n    \"name\": \"{{editedRandomFirstName}}\",\n    \"email\": \"{{editedRandomEmail}}\",\n    \"age\": {{editedRandomAge}}\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "{{baseUrl}}{{collection}}/{{id}}",
+					"host": [
+						"{{baseUrl}}{{collection}}"
+					],
+					"path": [
+						"{{id}}"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "[DEL] Remove document",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"pm.test(\"Status code is 200\", function () {",
+							"    pm.response.to.have.status(200);",
+							"});",
+							"",
+							"pm.test(\"Message is correct\", function () {",
+							"    var jsonData = pm.response.json();",
+							"    pm.expect(jsonData.message).to.eql(\"Документ видалено\");",
+							"});",
+							"",
+							"pm.test(\"Attributes created properly\", function () {",
+							"    var jsonData = pm.response.json();",
+							"",
+							"    pm.expect(jsonData.deletedDocument._id).to.eq(pm.collectionVariables.get(\"authorId\"));",
+							"    pm.expect(jsonData.deletedDocument.name).to.eql(pm.collectionVariables.get(\"editedRandomFirstName\"));",
+							"    pm.expect(jsonDatadeletedDocument.age).to.eql(pm.collectionVariables.get(\"editedRandomAge\"));",
+							"    pm.expect(jsonData.deletedDocument.email).to.eql(pm.collectionVariables.get(\"editedRandomEmail\"));",
+							"});"
+						],
+						"type": "text/javascript",
+						"packages": {}
+					}
+				}
+			],
+			"request": {
+				"method": "DELETE",
+				"header": [],
+				"url": {
+					"raw": "{{baseUrl}}{{collection}}/{{id}}",
+					"host": [
+						"{{baseUrl}}{{collection}}"
+					],
+					"path": [
+						"{{id}}"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "[GET] Find document by ID",
+			"event": [
+				{
+					"listen": "prerequest",
+					"script": {
+						"exec": [
+							""
+						],
+						"type": "text/javascript",
+						"packages": {}
+					}
+				},
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"pm.test(\"Status code is 404\", function () {",
+							"    pm.response.to.have.status(404);",
+							"});",
+							"",
+							"pm.test(\"Message is correct\", function () {",
+							"    var jsonData = pm.response.json();",
+							"    pm.expect(jsonData.message).to.eql(\"Документ не знайдено\");",
+							"});"
+						],
+						"type": "text/javascript",
+						"packages": {}
+					}
+				}
+			],
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "{{baseUrl}}{{collection}}/{{id}}",
+					"host": [
+						"{{baseUrl}}{{collection}}"
+					],
+					"path": [
+						"{{id}}"
+					]
+				}
+			},
+			"response": []
+		}
+	],
+	"event": [
+		{
+			"listen": "prerequest",
+			"script": {
+				"type": "text/javascript",
+				"packages": {},
+				"exec": [
+					""
+				]
+			}
+		},
+		{
+			"listen": "test",
+			"script": {
+				"type": "text/javascript",
+				"packages": {},
+				"exec": [
+					""
+				]
+			}
+		}
+	],
+	"variable": [
+		{
+			"key": "baseUrl",
+			"value": "http://localhost:3000/api/",
+			"type": "string"
+		},
+		{
+			"key": "collection",
+			"value": "Authors",
+			"type": "string"
+		},
+		{
+			"key": "randomAge",
+			"value": ""
+		},
+		{
+			"key": "randomFirstName",
+			"value": ""
+		},
+		{
+			"key": "randomEmail",
+			"value": ""
+		},
+		{
+			"key": "editedRandomFirstName",
+			"value": ""
+		},
+		{
+			"key": "editedRandomEmail",
+			"value": ""
+		},
+		{
+			"key": "editedRandomAge",
+			"value": ""
+		},
+		{
+			"key": "id",
+			"value": ""
+		},
+		{
+			"key": "documentsSize",
+			"value": ""
+		},
+		{
+			"key": "defaultAttributeName",
+			"value": "age",
+			"type": "string"
+		}
+	]
+}
